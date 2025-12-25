@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from database import SessionLocal, engine
 from models import PlayerStats
 from schemas import StatsUpdate
-from responses import success_response, error_response
+from responses import success_response, error_response, success_pagination_response
 from codes import Codes
 import math
 
@@ -74,10 +74,10 @@ def get_stats(user_id: int, db: Session = Depends(get_db)):
 
 @router.get("")
 def get_top_stats(
-    sort: str = Query("kills", enum=["kills", "deaths", "time_played"]),
-    page: int = Query(1, ge=1),
-    pageSize: int = Query(20, ge=1, le=100),
-    db: Session = Depends(get_db)
+        sort: str = Query("kills", enum=["kills", "deaths", "time_played"]),
+        page: int = Query(1, ge=1),
+        pageSize: int = Query(20, ge=1, le=100),
+        db: Session = Depends(get_db)
 ):
     total = db.query(PlayerStats).count()
     total_pages = math.ceil(total / pageSize)
@@ -94,18 +94,18 @@ def get_top_stats(
         } for s in items
     ]
 
-    return success_response(
+    return success_pagination_response(
         message="Топ игроков получен",
         code=Codes.STATS_LIST_FETCHED,
         data={
             "items": data,
-            "pagination": {
-                "page": page,
-                "pageSize": pageSize,
-                "total": total,
-                "totalPages": total_pages,
-                "nextPage": page + 1 if page < total_pages else None,
-                "prevPage": page - 1 if page > 1 else None
-            }
+        },
+        pagination={
+            "page": page,
+            "pageSize": pageSize,
+            "total": total,
+            "totalPages": total_pages,
+            "nextPage": page + 1 if page < total_pages else None,
+            "prevPage": page - 1 if page > 1 else None
         }
     )
