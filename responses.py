@@ -3,7 +3,7 @@ from datetime import datetime
 import uuid
 from codes import Codes
 
-
+# Успешный ответ
 def success_response(message: str, code: Codes, data=None):
     return JSONResponse(
         status_code=200,
@@ -32,7 +32,7 @@ def success_pagination_response(message: str, code: Codes, data=None, pagination
             }
         }
     )
-
+# Ошибка
 def error_response(status_code: int, message: str, code: Codes):
     return JSONResponse(
         status_code=status_code,

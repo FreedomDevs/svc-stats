@@ -5,6 +5,10 @@ from models import PlayerStats
 
 class StatsService:
 
+# Проверяем, что у игрока ещё нет статистики
+#Принимает БД-сессию
+#Принимает user_id
+#Возвращает ORM-объект PlayerStats
     @staticmethod
     def create_stats(db: Session, user_id: int) -> PlayerStats:
         if db.query(PlayerStats).filter_by(user_id=user_id).first():
@@ -14,8 +18,10 @@ class StatsService:
         db.add(stats)
         db.commit()
         db.refresh(stats)
-        return stats
+        return stats #Возвращаем ORM-объект сервису/роуту
 
+# Полное обновление статистики игрока
+#Передаём поля — сервис не зависит от HTTP-схем.
     @staticmethod
     def update_stats(
         db: Session,
@@ -32,8 +38,9 @@ class StatsService:
         stats.kills = kills
         stats.deaths = deaths
         db.commit()
-        return stats
+        return stats #Возвращаем обновлённую сущность (может быть полезно дальше)
 
+# Метод возвращает не ORM, а DTO (dict) — готовый формат для API
     @staticmethod
     def get_stats(db: Session, user_id: int) -> dict:
         stats = db.query(PlayerStats).filter_by(user_id=user_id).first()
@@ -41,7 +48,7 @@ class StatsService:
             raise ValueError("STATS_NOT_FOUND")
 
         kd = stats.kills / stats.deaths if stats.deaths > 0 else stats.kills
-
+#Формируем DTO, который готов к отдаче клиенту
         return {
             "user_id": stats.user_id,
             "time_played": stats.time_played,
@@ -50,6 +57,10 @@ class StatsService:
             "kd_ratio": round(kd, 2)
         }
 
+# Подсчёт общего количества записей для пагинации
+# Сортировка динамически по выбранному полю
+#Возвращает объект пагинации
+#(разделение удобно для HTTP-слоя)
     @staticmethod
     def get_top_stats(
         db: Session,
@@ -81,4 +92,4 @@ class StatsService:
             "prevPage": page - 1 if page > 1 else None
         }
 
-        return data, pagination
+        return data, pagination #Возвращаем чистые данные, без HTTP-логики

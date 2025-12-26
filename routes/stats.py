@@ -11,7 +11,7 @@ from responses import (
 )
 from codes import Codes
 
-router = APIRouter(prefix="/stats", tags=["stats"])
+router = APIRouter(prefix="/stats", tags=["stats"]) #Все эндпоинты будут начинаться с /stats
 
 
 def get_db():
@@ -21,7 +21,7 @@ def get_db():
     finally:
         db.close()
 
-
+#Создание статистики игрока
 @router.post("/{user_id}")
 def create_stats(user_id: int, db: Session = Depends(get_db)):
     try:
@@ -31,14 +31,14 @@ def create_stats(user_id: int, db: Session = Depends(get_db)):
             code=Codes.STATS_CREATED,
             data={"user_id": user_id}
         )
-    except ValueError:
+    except ValueError: #Ловим доменную ошибку и превращаем её в HTTP
         return error_response(
             409,
             "Статистика уже существует",
             Codes.STATS_ALREADY_EXISTS
         )
 
-
+#Обновляем статистику
 @router.put("/{user_id}")
 def update_stats(user_id: int, payload: StatsUpdate, db: Session = Depends(get_db)):
     try:
@@ -85,13 +85,13 @@ def get_top_stats(
     pageSize: int = Query(20, ge=1, le=100),
     db: Session = Depends(get_db)
 ):
-    data, pagination = StatsService.get_top_stats(
+    data, pagination = StatsService.get_top_stats( #Получаем готовые данные из сервиса
         db,
         sort,
         page,
         pageSize
     )
-
+#Route только упаковывает ответ, не считает ничего
     return success_pagination_response(
         message="Топ игроков получен",
         code=Codes.STATS_LIST_FETCHED,
