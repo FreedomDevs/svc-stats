@@ -1,6 +1,9 @@
 import math
 from sqlalchemy.orm import Session
 from models import PlayerStats
+from services.constants import KD_RATIO_PRECISION
+from codes import Codes
+from uuid import UUID
 
 
 class StatsService:
@@ -10,9 +13,9 @@ class StatsService:
 #Принимает user_id
 #Возвращает ORM-объект PlayerStats
     @staticmethod
-    def create_stats(db: Session, user_id: int) -> PlayerStats:
+    def create_stats(db: Session, user_id: UUID) -> PlayerStats:
         if db.query(PlayerStats).filter_by(user_id=user_id).first():
-            raise ValueError("STATS_ALREADY_EXISTS")
+            raise ValueError(Codes.STATS_ALREADY_EXISTS)
 
         stats = PlayerStats(user_id=user_id)
         db.add(stats)
@@ -25,7 +28,7 @@ class StatsService:
     @staticmethod
     def update_stats(
         db: Session,
-        user_id: int,
+        user_id: UUID,
         time_played: int,
         kills: int,
         deaths: int
@@ -34,15 +37,15 @@ class StatsService:
         if not stats:
             raise ValueError("STATS_NOT_FOUND")
 
-        stats.time_played = time_played
-        stats.kills = kills
-        stats.deaths = deaths
+        stats.time_played += time_played
+        stats.kills += kills
+        stats.deaths += deaths
         db.commit()
         return stats #Возвращаем обновлённую сущность (может быть полезно дальше)
 
 # Метод возвращает не ORM, а DTO (dict) — готовый формат для API
     @staticmethod
-    def get_stats(db: Session, user_id: int) -> dict:
+    def get_stats(db: Session, user_id: UUID) -> dict:
         stats = db.query(PlayerStats).filter_by(user_id=user_id).first()
         if not stats:
             raise ValueError("STATS_NOT_FOUND")
@@ -50,11 +53,11 @@ class StatsService:
         kd = stats.kills / stats.deaths if stats.deaths > 0 else stats.kills
 #Формируем DTO, который готов к отдаче клиенту
         return {
-            "user_id": stats.user_id,
+            "user_id": str(stats.user_id),
             "time_played": stats.time_played,
             "kills": stats.kills,
             "deaths": stats.deaths,
-            "kd_ratio": round(kd, 2)
+            "kd_ratio": round(kd, KD_RATIO_PRECISION)
         }
 
 # Подсчёт общего количества записей для пагинации

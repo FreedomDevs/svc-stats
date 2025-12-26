@@ -1,5 +1,10 @@
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
+from pydantic import BaseModel
+from uuid import UUID
+
+class StatsResponse(BaseModel):
+    user_id: UUID
 
 from database import SessionLocal
 from schemas import StatsUpdate
@@ -23,14 +28,15 @@ def get_db():
 
 #Создание статистики игрока
 @router.post("/{user_id}")
-def create_stats(user_id: int, db: Session = Depends(get_db)):
+def create_stats(user_id: UUID, db: Session = Depends(get_db)):
     try:
         StatsService.create_stats(db, user_id)
         return success_response(
             message="Статистика создана",
             code=Codes.STATS_CREATED,
-            data={"user_id": user_id}
+            data={"user_id": str(user_id)}
         )
+
     except ValueError: #Ловим доменную ошибку и превращаем её в HTTP
         return error_response(
             409,
@@ -39,8 +45,8 @@ def create_stats(user_id: int, db: Session = Depends(get_db)):
         )
 
 #Обновляем статистику
-@router.put("/{user_id}")
-def update_stats(user_id: int, payload: StatsUpdate, db: Session = Depends(get_db)):
+@router.patch("/{user_id}")
+def update_stats(user_id: UUID, payload: StatsUpdate, db: Session = Depends(get_db)):
     try:
         StatsService.update_stats(
             db,
@@ -62,7 +68,7 @@ def update_stats(user_id: int, payload: StatsUpdate, db: Session = Depends(get_d
 
 
 @router.get("/{user_id}")
-def get_stats(user_id: int, db: Session = Depends(get_db)):
+def get_stats(user_id: UUID, db: Session = Depends(get_db)):
     try:
         data = StatsService.get_stats(db, user_id)
         return success_response(

@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from contextlib import asynccontextmanager
 from routes import routers
 from database import engine
 from models import PlayerStats
@@ -7,9 +8,12 @@ import uvicorn
 app = FastAPI()
 
 
-@app.on_event("startup")
-def startup():
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # STARTUP
     PlayerStats.metadata.create_all(bind=engine)
+    yield
+    # SHUTDOWN (если понадобится)
 
 
 for route in routers:
