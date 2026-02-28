@@ -13,15 +13,22 @@ class StatsService:
 #Принимает user_id
 #Возвращает ORM-объект PlayerStats
     @staticmethod
-    def create_stats(db: Session, user_id: UUID) -> PlayerStats:
-        if db.query(PlayerStats).filter_by(user_id=user_id).first():
+    def create_stats(db: Session, user_id: UUID, server_name: str) -> PlayerStats:
+        if db.query(PlayerStats).filter_by(
+                user_id=user_id,
+                server_name=server_name
+        ).first():
             raise ValueError(Codes.STATS_ALREADY_EXISTS)
 
-        stats = PlayerStats(user_id=user_id)
+        stats = PlayerStats(
+        user_id=user_id,
+        server_name=server_name
+    )
+
         db.add(stats)
         db.commit()
         db.refresh(stats)
-        return stats #Возвращаем ORM-объект сервису/роуту
+        return stats
 
 # Полное обновление статистики игрока
 #Передаём поля — сервис не зависит от HTTP-схем.
@@ -29,31 +36,42 @@ class StatsService:
     def update_stats(
         db: Session,
         user_id: UUID,
+        server_name: str,
         time_played: int,
         kills: int,
         deaths: int
     ) -> PlayerStats:
-        stats = db.query(PlayerStats).filter_by(user_id=user_id).first()
+        stats = db.query(PlayerStats).filter_by(
+        user_id=user_id,
+        server_name=server_name
+    ).first()
+
         if not stats:
             raise ValueError("STATS_NOT_FOUND")
 
         stats.time_played += time_played
         stats.kills += kills
         stats.deaths += deaths
+
         db.commit()
-        return stats #Возвращаем обновлённую сущность (может быть полезно дальше)
+        return stats
 
 # Метод возвращает не ORM, а DTO (dict) — готовый формат для API
     @staticmethod
-    def get_stats(db: Session, user_id: UUID) -> dict:
-        stats = db.query(PlayerStats).filter_by(user_id=user_id).first()
+    def get_stats(db: Session, user_id: UUID, server_name: str) -> dict:
+        stats = db.query(PlayerStats).filter_by(
+        user_id=user_id,
+        server_name=server_name
+    ).first()
+
         if not stats:
             raise ValueError("STATS_NOT_FOUND")
 
         kd = stats.kills / stats.deaths if stats.deaths > 0 else stats.kills
-#Формируем DTO, который готов к отдаче клиенту
+
         return {
             "user_id": str(stats.user_id),
+            "server_name": stats.server_name,
             "time_played": stats.time_played,
             "kills": stats.kills,
             "deaths": stats.deaths,
@@ -74,7 +92,9 @@ class StatsService:
         total = db.query(PlayerStats).count()
         total_pages = math.ceil(total / page_size)
 
-        query = db.query(PlayerStats).order_by(getattr(PlayerStats, sort).desc())
+        query = db.query(PlayerStats).filter_by(
+            server_name=server_name #Может быть ошибка
+        ).order_by(getattr(PlayerStats, sort).desc())
         items = query.offset((page - 1) * page_size).limit(page_size).all()
 
         data = [

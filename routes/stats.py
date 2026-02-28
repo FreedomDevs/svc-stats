@@ -28,13 +28,20 @@ def get_db():
 
 #Создание статистики игрока
 @router.post("/{user_id}")
-def create_stats(user_id: UUID, db: Session = Depends(get_db)):
+def create_stats(
+    user_id: UUID,
+    server_name: str = Query(...),
+    db: Session = Depends(get_db)
+):
     try:
-        StatsService.create_stats(db, user_id)
+        StatsService.create_stats(db, user_id, server_name)
         return success_response(
             message="Статистика создана",
             code=Codes.STATS_CREATED,
-            data={"user_id": str(user_id)}
+            data={
+                "user_id": str(user_id),
+                "server_name": server_name
+            }
         )
 
     except ValueError: #Ловим доменную ошибку и превращаем её в HTTP
@@ -46,15 +53,21 @@ def create_stats(user_id: UUID, db: Session = Depends(get_db)):
 
 #Обновляем статистику
 @router.patch("/{user_id}")
-def update_stats(user_id: UUID, payload: StatsUpdate, db: Session = Depends(get_db)):
+def update_stats(
+    user_id: UUID,
+    payload: StatsUpdate,
+    server_name: str = Query(...),
+    db: Session = Depends(get_db)
+):
     try:
         StatsService.update_stats(
-            db,
-            user_id,
-            payload.time_played,
-            payload.kills,
-            payload.deaths
-        )
+        db,
+        user_id,
+        server_name,
+        payload.time_played,
+        payload.kills,
+        payload.deaths
+    )
         return success_response(
             message="Статистика обновлена",
             code=Codes.STATS_UPDATED
@@ -68,9 +81,13 @@ def update_stats(user_id: UUID, payload: StatsUpdate, db: Session = Depends(get_
 
 
 @router.get("/{user_id}")
-def get_stats(user_id: UUID, db: Session = Depends(get_db)):
+def get_stats(
+    user_id: UUID,
+    server_name: str = Query(...),
+    db: Session = Depends(get_db)
+):
     try:
-        data = StatsService.get_stats(db, user_id)
+        data = StatsService.get_stats(db, user_id, server_name)
         return success_response(
             message="Статистика получена",
             code=Codes.STATS_FETCHED,
@@ -86,13 +103,15 @@ def get_stats(user_id: UUID, db: Session = Depends(get_db)):
 
 @router.get("")
 def get_top_stats(
+    server_name: str = Query(...),
     sort: str = Query("kills", enum=["kills", "deaths", "time_played"]),
     page: int = Query(1, ge=1),
     pageSize: int = Query(20, ge=1, le=100),
     db: Session = Depends(get_db)
 ):
-    data, pagination = StatsService.get_top_stats( #Получаем готовые данные из сервиса
+    data, pagination = StatsService.get_top_stats(
         db,
+        server_name,
         sort,
         page,
         pageSize
