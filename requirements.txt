@@ -3,3 +3,5 @@ uvicorn~=0.38.0
 sqlalchemy
 psycopg2-binary
 pydantic
+pydantic-settings
+python-dotenv
