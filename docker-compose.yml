@@ -1,13 +1,47 @@
 services:
   postgres:
     image: postgres:16
-    container_name: my_postgres
-    env_file:
-      - .env
-    ports:
-      - "8005:5432"
+    container_name: svc-stats-postgres
+
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: mydb
+
+    networks:
+      net:
+        ipv6_address: fd98:2dd6:8f48:1d99:b898:7f2f::3
+
     volumes:
       - db:/var/lib/postgresql/data
+
+  app-dev:
+    container_name: svc-stats-app-dev
+    build:
+      context: .
+      dockerfile: Dockerfile-test
+    volumes:
+      - ./app:/app:rw
+    depends_on:
+      - postgres
+    cap_add:
+      - NET_BIND_SERVICE
+    env_file:
+      - .env
+
+    networks:
+      net:
+        ipv6_address: fd98:2dd6:8f48:1d99:b898:7f2f::2
+
+networks:
+  net:
+    enable_ipv6: true
+    enable_ipv4: false
+    driver_opts:
+      com.docker.network.driver.mtu: "65535"
+    ipam:
+      config:
+        - subnet: fd98:2dd6:8f48:1d99:b898:7f2f::/96
 
 volumes:
   db:

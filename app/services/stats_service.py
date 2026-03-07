@@ -1,9 +1,9 @@
 import math
 from sqlalchemy.orm import Session
-from models import PlayerStats
-from services.constants import KD_RATIO_PRECISION
-from codes import Codes
 from uuid import UUID
+from app.models import PlayerStats
+from app.services.constants import KD_RATIO_PRECISION
+from app.codes import Codes
 
 
 class StatsService:

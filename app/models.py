@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String
-from database import Base
 from sqlalchemy.dialects.postgresql import UUID
+from app.database import Base
 
 class PlayerStats(Base):
     __tablename__ = "player_stats"

@@ -1,7 +1,7 @@
 from fastapi.responses import JSONResponse
 from datetime import datetime
 import uuid
-from codes import Codes
+from app.codes import Codes
 
 # Успешный ответ
 def success_response(message: str, code: Codes, data=None):

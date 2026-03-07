@@ -1,6 +1,6 @@
 from fastapi import APIRouter
-from responses import success_response
-from codes import Codes
+from app.responses import success_response
+from app.codes import Codes
 
 router = APIRouter(tags=["heals"])
 

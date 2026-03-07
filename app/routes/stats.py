@@ -6,15 +6,15 @@ from uuid import UUID
 class StatsResponse(BaseModel):
     user_id: UUID
 
-from database import SessionLocal
-from schemas import StatsUpdate
-from services.stats_service import StatsService
-from responses import (
+from app.database import SessionLocal
+from app.schemas import StatsUpdate
+from app.services.stats_service import StatsService
+from app.responses import (
     success_response,
     error_response,
     success_pagination_response
 )
-from codes import Codes
+from app.codes import Codes
 
 router = APIRouter(prefix="/stats", tags=["stats"]) #Все эндпоинты будут начинаться с /stats
 

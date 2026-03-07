@@ -1,10 +1,10 @@
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
-from routes import routers
-from database import engine
-from models import PlayerStats
 import uvicorn
-from settings import settings
+from app.routes import routers
+from app.database import engine
+from app.models import PlayerStats
+from app.settings import settings
 
 app = FastAPI()
 
