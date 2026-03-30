@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+package stats;
+
+service StatsService {
+  rpc GetStats (GetStatsRequest) returns (GetStatsResponse);
+  rpc UpdateStats (UpdateStatsRequest) returns (Empty);
+}
+
+message GetStatsRequest {
+  string user_id = 1;
+  string server_name = 2;
+}
+
+message GetStatsResponse {
+  string user_id = 1;
+  string server_name = 2;
+  int32 time_played = 3;
+  int32 kills = 4;
+  int32 deaths = 5;
+  double kd_ratio = 6;
+}
+
+message UpdateStatsRequest {
+  string user_id = 1;
+  string server_name = 2;
+  int32 time_played = 3;
+  int32 kills = 4;
+  int32 deaths = 5;
+}
+
+message Empty {}

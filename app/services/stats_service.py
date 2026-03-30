@@ -84,16 +84,17 @@ class StatsService:
 #(разделение удобно для HTTP-слоя)
     @staticmethod
     def get_top_stats(
-        db: Session,
-        sort: str,
-        page: int,
-        page_size: int
+            db: Session,
+            server_name: str,
+            sort: str,
+            page: int,
+            page_size: int
     ) -> tuple[list[dict], dict]:
         total = db.query(PlayerStats).count()
         total_pages = math.ceil(total / page_size)
 
         query = db.query(PlayerStats).filter_by(
-            server_name=server_name #Может быть ошибка
+            server_name=server_name
         ).order_by(getattr(PlayerStats, sort).desc())
         items = query.offset((page - 1) * page_size).limit(page_size).all()
 
